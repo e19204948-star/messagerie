@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Gmail Clone</title>
+    <style>
+        /* CSS : Le "Look" Gmail */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; height: 100vh; background: #f6f8fc; }
+        
+        /* Barre Latérale */
+        .sidebar { width: 250px; padding: 20px; background: #f6f8fc; }
+        .btn-compose { background: #c2e7ff; padding: 15px 25px; border-radius: 16px; border: none; cursor: pointer; font-weight: bold; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .btn-compose:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        
+        /* Liste des Emails */
+        .main { flex-grow: 1; background: white; margin: 8px; border-radius: 16px; overflow-y: auto; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .email-item { display: flex; align-items: center; padding: 10px 20px; border-bottom: 1px solid #f1f1f1; cursor: pointer; font-size: 0.9em; }
+        .email-item:hover { box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); z-index: 1; }
+        .sender { width: 200px; font-weight: bold; }
+        .subject { flex-grow: 1; color: #5f6368; }
+        .unread { font-weight: bold; background: #fff; }
+
+        /* Fenêtre de rédaction (Cachée par défaut) */
+        #compose-box { position: fixed; bottom: 0; right: 50px; width: 500px; background: white; border-radius: 10px 10px 0 0; box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14); display: none; flex-direction: column; border: 1px solid #ccc; }
+        .header-box { background: #f2f6fc; padding: 10px; font-weight: bold; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; }
+        input, textarea { border: none; padding: 10px; border-bottom: 1px solid #f1f1f1; outline: none; }
+        textarea { height: 200px; resize: none; }
+        .send-btn { background: #0b57d0; color: white; border: none; padding: 10px 20px; border-radius: 20px; margin: 10px; cursor: pointer; align-self: flex-start; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <button class="btn-compose" onclick="toggleCompose()">+ Nouveau message</button>
+        <div style="color: #0b57d0; font-weight: bold;">Boîte de réception</div>
+    </aside>
+
+    <main class="main" id="email-list">
+        <div class="email-item">Chargement des messages...</div>
+    </main>
+
+    <div id="compose-box">
+        <div class="header-box">Nouveau message <span onclick="toggleCompose()" style="cursor:pointer">×</span></div>
+        <input type="email" id="to" placeholder="Destinataire">
+        <input type="text" id="subject" placeholder="Objet">
+        <textarea id="body"></textarea>
+        <button class="send-btn" id="send-btn">Envoyer</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 1. CONFIGURATION FIREBASE (À remplir avec tes infos)
+        const firebaseConfig = {
+            apiKey: "846140280738",
+            authDomain: "messagerie.firebaseapp.com",
+            projectId: "messagerie-cd2ba",
+            storageBucket: "messagerie.appspot.com",
+            messagingSenderId: "messagerie-cd2ba",
+            appId: "messagerie-cd2ba"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 2. ENVOYER UN EMAIL
+        document.getElementById('send-btn').onclick = async () => {
+            const email = {
+                to: document.getElementById('to').value,
+                subject: document.getElementById('subject').value,
+                body: document.getElementById('body').value,
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "emails"), email);
+                toggleCompose(); // Fermer la boîte
+                alert("Message envoyé !");
+            } catch (e) { console.error("Erreur : ", e); }
+        };
+
+        // 3. LIRE LES EMAILS (Temps réel)
+        const q = query(collection(db, "emails"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const list = document.getElementById('email-list');
+            list.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                list.innerHTML += `
+                    <div class="email-item">
+                        <div class="sender">${data.to}</div>
+                        <div class="subject">${data.subject} - <span style="font-weight:normal">${data.body.substring(0, 50)}...</span></div>
+                    </div>
+                `;
+            });
+        });
+    </script>
+
+    <script>
+        // Logique UI simple
+        function toggleCompose() {
+            const box = document.getElementById('compose-box');
+            box.style.display = (box.style.display === 'flex') ? 'none' : 'flex';
+        }
+    </script>
+</body>
+</html>
