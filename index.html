@@ -3,84 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Enterprise | v2.0</title>
-    
+    <title>Nexus Enterprise | v2.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
         :root {
-            --sidebar-width: 320px;
             --primary: #6366f1;
-            --bg-app: #ffffff;
             --bg-sidebar: #f9fafb;
             --border: #e5e7eb;
             --text-main: #111827;
-            --text-muted: #6b7280;
             --msg-sent: #6366f1;
             --msg-received: #f3f4f6;
-            --radius-ui: 12px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: #f3f4f6; height: 100vh; display: flex; align-items: center; justify-content: center; color: var(--text-main); }
+        body { background: #f3f4f6; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
         /* --- LOGIN --- */
-        .login-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: white; padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        .login-card h1 { font-size: 24px; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
-        .login-card input { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 20px; font-size: 16px; outline: none; transition: 0.2s; }
-        .login-card input:focus { border-color: var(--primary); }
-        .login-card button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .login-card button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .login-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: white; padding: 40px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; }
+        .login-card input { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 12px; margin: 20px 0; font-size: 16px; outline: none; }
+        .login-card button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
         /* --- LAYOUT --- */
-        .nexus-wrapper { 
-            display: none; width: 100vw; height: 100vh; background: var(--bg-app); 
-            grid-template-columns: var(--sidebar-width) 1fr;
-        }
-
-        @media (min-width: 1024px) {
-            .nexus-wrapper { width: 95vw; height: 90vh; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--border); overflow: hidden; }
-        }
+        .nexus-wrapper { display: none; width: 100vw; height: 100vh; background: white; grid-template-columns: 320px 1fr; }
+        @media (min-width: 1024px) { .nexus-wrapper { width: 95vw; height: 92vh; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid var(--border); overflow: hidden; } }
 
         /* --- SIDEBAR --- */
         .sidebar { background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .sidebar-user { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-        .search-container { padding: 15px; }
-        .search-bar { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white; outline: none; }
-
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); font-weight: 800; font-size: 1.2rem; display: flex; justify-content: space-between; }
         .contact-list { flex: 1; overflow-y: auto; padding: 10px; }
-        .contact-card { 
-            display: flex; align-items: center; padding: 12px; border-radius: 10px; cursor: pointer; 
-            transition: 0.2s; margin-bottom: 4px;
-        }
+        .contact-card { display: flex; align-items: center; padding: 12px; border-radius: 12px; cursor: pointer; margin-bottom: 4px; transition: 0.2s; border: 1px solid transparent; }
         .contact-card:hover { background: #f3f4f6; }
-        .contact-card.active { background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-        .avatar-ui { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px; }
+        .contact-card.active { background: white; border-color: var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px; }
 
         /* --- CHAT AREA --- */
-        .chat-main { display: flex; flex-direction: column; background: white; position: relative; }
-        .chat-header { height: 70px; padding: 0 30px; display: flex; align-items: center; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 18px; }
+        .chat-main { display: flex; flex-direction: column; background: white; }
+        .chat-header { height: 70px; padding: 0 30px; display: flex; align-items: center; border-bottom: 1px solid var(--border); font-weight: 700; }
+        .messages-viewport { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #fafafa; }
         
-        .messages-viewport { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 8px; }
-        
-        /* Bulle Modernisée */
-        .bubble { max-width: 60%; padding: 12px 18px; border-radius: 18px; font-size: 14.5px; line-height: 1.5; position: relative; }
+        /* Bulles */
+        .bubble { max-width: 70%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; position: relative; }
         .sent { align-self: flex-end; background: var(--msg-sent); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: var(--msg-received); color: var(--text-main); border-bottom-left-radius: 4px; }
-        .timestamp { font-size: 10px; opacity: 0.6; margin-top: 5px; display: block; }
-        
-        /* Date Divider */
-        .date-divider { text-align: center; margin: 20px 0; position: relative; }
-        .date-divider::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: var(--border); z-index: 0; }
-        .date-divider span { background: white; padding: 0 15px; font-size: 11px; font-weight: 700; color: var(--text-muted); position: relative; z-index: 1; text-transform: uppercase; }
 
-        /* Composer */
-        .composer { padding: 25px; border-top: 1px solid var(--border); display: flex; gap: 15px; align-items: center; }
-        .composer input { flex: 1; padding: 14px 20px; background: #f9fafb; border: 1px solid var(--border); border-radius: 12px; outline: none; font-size: 15px; }
+        /* Composer (Zone de saisie) */
+        .composer { padding: 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; background: white; }
+        .composer input { flex: 1; padding: 14px 20px; background: #f3f4f6; border: 2px solid transparent; border-radius: 12px; outline: none; font-size: 15px; transition: 0.2s; }
+        .composer input:focus { background: white; border-color: var(--primary); }
+        .composer input:disabled { cursor: not-allowed; opacity: 0.6; }
         .composer button { background: var(--primary); color: white; border: none; width: 48px; height: 48px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .composer button:disabled { opacity: 0.3; }
-
+        .composer button:disabled { background: #ccc; cursor: not-allowed; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -90,31 +63,32 @@
 
 <div id="login-overlay" class="login-overlay">
     <div class="login-card">
-        <h1>Nexus.</h1>
-        <input type="text" id="login-name" placeholder="Prénom ou Identifiant" autocomplete="off">
-        <button id="btn-enter">Accéder à l'espace</button>
+        <h1 style="letter-spacing:-1px">Nexus Enterprise</h1>
+        <input type="text" id="login-name" placeholder="Entrez votre prénom..." autocomplete="off">
+        <button id="btn-enter">Se connecter</button>
     </div>
 </div>
 
 <div id="nexus-app" class="nexus-wrapper">
     <aside class="sidebar">
-        <div class="sidebar-user">
-            <span id="me-name" style="font-weight: 700;">Utilisateur</span>
-            <button onclick="App.logout()" style="border:none; background:none; color:red; cursor:pointer; font-size:10px; font-weight:800;">LOGOUT</button>
-        </div>
-        <div class="search-container">
-            <input type="text" class="search-bar" id="contact-search" placeholder="Rechercher un contact..." oninput="App.filterContacts(this.value)">
+        <div class="sidebar-header">
+            <span id="me-name">Nexus</span>
+            <span style="font-size: 10px; color: #10b981;">● ONLINE</span>
         </div>
         <div id="contact-list" class="contact-list"></div>
     </aside>
 
     <main class="chat-main">
-        <header id="chat-title" class="chat-header">Sélectionnez un canal</header>
-        <div id="msg-viewport" class="messages-viewport"></div>
+        <header id="chat-title" class="chat-header">Bienvenue dans votre espace</header>
+        <div id="msg-viewport" class="messages-viewport">
+            <div style="margin: auto; text-align: center; color: #9ca3af;">
+                <p>👋 Cliquez sur un collaborateur à gauche<br>pour lancer la discussion.</p>
+            </div>
+        </div>
         <div class="composer">
-            <input type="text" id="msg-input" placeholder="Écrire dans Nexus..." disabled>
+            <input type="text" id="msg-input" placeholder="Choisissez un contact pour écrire..." disabled>
             <button id="btn-send" disabled>
-                <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
     </main>
@@ -133,122 +107,109 @@
     const db = firebase.database();
 
     const App = {
-        currentUser: null,
-        targetContact: null,
+        user: null,
+        target: null,
         chatRef: null,
-        allContacts: [],
 
         init() {
             const saved = localStorage.getItem('nexus_session');
             if (saved) {
-                this.currentUser = JSON.parse(saved);
-                this.renderApp();
+                this.user = JSON.parse(saved);
+                this.run();
             }
-            document.getElementById('btn-enter').onclick = () => this.handleLogin();
-            document.getElementById('btn-send').onclick = () => this.pushMessage();
-            document.getElementById('msg-input').onkeypress = (e) => e.key === 'Enter' && this.pushMessage();
+            document.getElementById('btn-enter').onclick = () => this.login();
+            document.getElementById('btn-send').onclick = () => this.send();
+            document.getElementById('msg-input').onkeypress = (e) => e.key === 'Enter' && this.send();
         },
 
-        async handleLogin() {
+        async login() {
             const name = document.getElementById('login-name').value.trim();
-            if (!name) return;
+            if (!name) return alert("Veuillez saisir un nom");
 
             const snap = await db.ref('users').orderByChild('name').equalTo(name).once('value');
             if (snap.exists()) {
-                this.currentUser = Object.values(snap.val())[0];
+                this.user = Object.values(snap.val())[0];
             } else {
                 const newUser = db.ref('users').push();
-                this.currentUser = { id: newUser.key, name: name, color: `hsl(${Math.random()*360}, 60%, 50%)` };
-                await newUser.set(this.currentUser);
+                this.user = { id: newUser.key, name: name, color: `hsl(${Math.random()*360}, 60%, 50%)` };
+                await newUser.set(this.user);
             }
-            localStorage.setItem('nexus_session', JSON.stringify(this.currentUser));
-            this.renderApp();
+            localStorage.setItem('nexus_session', JSON.stringify(this.user));
+            this.run();
         },
 
-        renderApp() {
+        run() {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('nexus-app').style.display = 'grid';
-            document.getElementById('me-name').textContent = this.currentUser.name;
-            this.syncContacts();
+            document.getElementById('me-name').textContent = this.user.name;
+            this.syncUsers();
         },
 
-        syncContacts() {
+        syncUsers() {
             db.ref('users').on('value', snap => {
-                this.allContacts = Object.values(snap.val() || {}).filter(u => u.id !== this.currentUser.id);
-                this.filterContacts("");
+                const list = document.getElementById('contact-list');
+                list.innerHTML = '';
+                Object.values(snap.val() || {}).forEach(u => {
+                    if (u.id === this.user.id) return;
+                    const card = document.createElement('div');
+                    card.className = `contact-card ${this.target?.id === u.id ? 'active' : ''}`;
+                    card.innerHTML = `<div class="avatar" style="background:${u.color}">${u.name[0]}</div>
+                                      <span style="font-weight:600">${u.name}</span>`;
+                    card.onclick = () => this.select(u);
+                    list.appendChild(card);
+                });
             });
         },
 
-        filterContacts(term) {
-            const list = document.getElementById('contact-list');
-            list.innerHTML = '';
-            this.allContacts
-                .filter(u => u.name.toLowerCase().includes(term.toLowerCase()))
-                .forEach(u => {
-                    const div = document.createElement('div');
-                    div.className = `contact-card ${this.targetContact?.id === u.id ? 'active' : ''}`;
-                    div.innerHTML = `<div class="avatar-ui" style="background:${u.color}">${u.name[0]}</div>
-                                     <span style="font-weight:600">${u.name}</span>`;
-                    div.onclick = () => this.selectContact(u);
-                    list.appendChild(div);
-                });
+        select(u) {
+            this.target = u;
+            const input = document.getElementById('msg-input');
+            const btn = document.getElementById('btn-send');
+
+            // --- C'EST ICI QUE LE DÉBLOCAGE SE FAIT ---
+            input.disabled = false;
+            btn.disabled = false;
+            input.placeholder = "Écrire à " + u.name + "...";
+            document.getElementById('chat-title').textContent = "Conversation avec " + u.name;
+            
+            input.focus(); // Met le curseur directement dans le champ
+            
+            this.syncUsers(); // Refresh sidebar active state
+            this.loadMsgs();
         },
 
-        selectContact(u) {
-            this.targetContact = u;
-            document.getElementById('chat-title').textContent = u.name;
-            document.getElementById('msg-input').disabled = false;
-            document.getElementById('btn-send').disabled = false;
-            this.filterContacts(document.getElementById('contact-search').value);
-            this.syncMessages();
-        },
-
-        syncMessages() {
-            const container = document.getElementById('msg-viewport');
-            container.innerHTML = '';
-            const chatId = [this.currentUser.id, this.targetContact.id].sort().join('_');
+        loadMsgs() {
+            const viewport = document.getElementById('msg-viewport');
+            viewport.innerHTML = '';
+            const id = [this.user.id, this.target.id].sort().join('_');
             
             if (this.chatRef) db.ref('chats/' + this.chatRef).off();
-            this.chatRef = chatId;
+            this.chatRef = id;
 
-            let lastDate = "";
-
-            db.ref('chats/' + chatId).on('child_added', snap => {
+            db.ref('chats/' + id).on('child_added', snap => {
                 const m = snap.val();
-                const dateObj = new Date(m.timestamp);
-                const dateStr = dateObj.toLocaleDateString();
-
-                if (dateStr !== lastDate) {
-                    const label = dateStr === new Date().toLocaleDateString() ? "Aujourd'hui" : dateStr;
-                    container.innerHTML += `<div class="date-divider"><span>${label}</span></div>`;
-                    lastDate = dateStr;
-                }
-
-                const isMe = m.senderId === this.currentUser.id;
-                const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
+                const isMe = m.senderId === this.user.id;
                 const div = document.createElement('div');
                 div.className = `bubble ${isMe ? 'sent' : 'received'}`;
-                div.innerHTML = `${m.text} <span class="timestamp">${time}</span>`;
-                container.appendChild(div);
-                container.scrollTop = container.scrollHeight;
+                div.textContent = m.text;
+                viewport.appendChild(div);
+                viewport.scrollTop = viewport.scrollHeight;
             });
         },
 
-        pushMessage() {
+        send() {
             const input = document.getElementById('msg-input');
-            const val = input.value.trim();
-            if (!val) return;
+            const text = input.value.trim();
+            if (!text || !this.chatRef) return;
 
             db.ref('chats/' + this.chatRef).push({
-                text: val,
-                senderId: this.currentUser.id,
+                text: text,
+                senderId: this.user.id,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
             input.value = '';
-        },
-
-        logout() { localStorage.removeItem('nexus_session'); location.reload(); }
+            input.focus();
+        }
     };
 
     App.init();
