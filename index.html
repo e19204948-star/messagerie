@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Enterprise | v2.1</title>
+    <title>Nexus Enterprise | v2.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -30,12 +30,18 @@
 
         /* --- SIDEBAR --- */
         .sidebar { background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); font-weight: 800; font-size: 1.2rem; display: flex; justify-content: space-between; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .logout-btn { background: #fee2e2; color: #dc2626; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .logout-btn:hover { background: #fecaca; }
+        
         .contact-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .section-title { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; margin: 15px 10px 5px 10px; }
+        
         .contact-card { display: flex; align-items: center; padding: 12px; border-radius: 12px; cursor: pointer; margin-bottom: 4px; transition: 0.2s; border: 1px solid transparent; }
         .contact-card:hover { background: #f3f4f6; }
         .contact-card.active { background: white; border-color: var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px; }
+        .avatar.global { background: #10b981; }
 
         /* --- CHAT AREA --- */
         .chat-main { display: flex; flex-direction: column; background: white; }
@@ -46,14 +52,14 @@
         .bubble { max-width: 70%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; position: relative; }
         .sent { align-self: flex-end; background: var(--msg-sent); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: var(--msg-received); color: var(--text-main); border-bottom-left-radius: 4px; }
+        .msg-author { font-size: 11px; font-weight: 700; color: #6b7280; margin-bottom: 2px; display: block; }
 
-        /* Composer (Zone de saisie) */
+        /* Composer */
         .composer { padding: 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; background: white; }
         .composer input { flex: 1; padding: 14px 20px; background: #f3f4f6; border: 2px solid transparent; border-radius: 12px; outline: none; font-size: 15px; transition: 0.2s; }
         .composer input:focus { background: white; border-color: var(--primary); }
-        .composer input:disabled { cursor: not-allowed; opacity: 0.6; }
-        .composer button { background: var(--primary); color: white; border: none; width: 48px; height: 48px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .composer button:disabled { background: #ccc; cursor: not-allowed; }
+        .composer button { background: var(--primary); color: white; border: none; width: 48px; height: 48px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .composer button:hover { opacity: 0.9; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -63,8 +69,9 @@
 
 <div id="login-overlay" class="login-overlay">
     <div class="login-card">
-        <h1 style="letter-spacing:-1px">Nexus Enterprise</h1>
-        <input type="text" id="login-name" placeholder="Entrez votre prénom..." autocomplete="off">
+        <h1 style="letter-spacing:-1px; margin-bottom:10px;">Nexus Chat</h1>
+        <p style="color:#6b7280; font-size:14px;">Entrez votre nom pour participer</p>
+        <input type="text" id="login-name" placeholder="Ex: Jean" autocomplete="off">
         <button id="btn-enter">Se connecter</button>
     </div>
 </div>
@@ -72,22 +79,30 @@
 <div id="nexus-app" class="nexus-wrapper">
     <aside class="sidebar">
         <div class="sidebar-header">
-            <span id="me-name">Nexus</span>
-            <span style="font-size: 10px; color: #10b981;">● ONLINE</span>
+            <div>
+                <div id="me-name" style="font-weight:700;">Utilisateur</div>
+                <div style="font-size:11px; color:#10b981; font-weight:600;">● EN LIGNE</div>
+            </div>
+            <button id="btn-logout" class="logout-btn">Déconnexion</button>
         </div>
-        <div id="contact-list" class="contact-list"></div>
+        <div class="contact-list">
+            <div class="section-title">Canaux</div>
+            <div id="channel-general" class="contact-card active">
+                <div class="avatar global">#</div>
+                <span style="font-weight:600">Salon Général</span>
+            </div>
+            
+            <div class="section-title">Collaborateurs</div>
+            <div id="users-list"></div>
+        </div>
     </aside>
 
     <main class="chat-main">
-        <header id="chat-title" class="chat-header">Bienvenue dans votre espace</header>
-        <div id="msg-viewport" class="messages-viewport">
-            <div style="margin: auto; text-align: center; color: #9ca3af;">
-                <p>👋 Cliquez sur un collaborateur à gauche<br>pour lancer la discussion.</p>
-            </div>
-        </div>
+        <header id="chat-title" class="chat-header">Salon Général</header>
+        <div id="msg-viewport" class="messages-viewport"></div>
         <div class="composer">
-            <input type="text" id="msg-input" placeholder="Choisissez un contact pour écrire..." disabled>
-            <button id="btn-send" disabled>
+            <input type="text" id="msg-input" placeholder="Écrire dans Général..." autocomplete="off">
+            <button id="btn-send">
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
@@ -108,8 +123,8 @@
 
     const App = {
         user: null,
-        target: null,
-        chatRef: null,
+        target: null, // null signifie qu'on est sur le salon général
+        chatRef: 'global_room',
 
         init() {
             const saved = localStorage.getItem('nexus_session');
@@ -120,6 +135,9 @@
             document.getElementById('btn-enter').onclick = () => this.login();
             document.getElementById('btn-send').onclick = () => this.send();
             document.getElementById('msg-input').onkeypress = (e) => e.key === 'Enter' && this.send();
+            document.getElementById('btn-logout').onclick = () => this.logout();
+            
+            document.getElementById('channel-general').onclick = () => this.selectGeneral();
         },
 
         async login() {
@@ -143,11 +161,12 @@
             document.getElementById('nexus-app').style.display = 'grid';
             document.getElementById('me-name').textContent = this.user.name;
             this.syncUsers();
+            this.selectGeneral(); // Ouvre le salon général au démarrage
         },
 
         syncUsers() {
             db.ref('users').on('value', snap => {
-                const list = document.getElementById('contact-list');
+                const list = document.getElementById('users-list');
                 list.innerHTML = '';
                 Object.values(snap.val() || {}).forEach(u => {
                     if (u.id === this.user.id) return;
@@ -155,43 +174,56 @@
                     card.className = `contact-card ${this.target?.id === u.id ? 'active' : ''}`;
                     card.innerHTML = `<div class="avatar" style="background:${u.color}">${u.name[0]}</div>
                                       <span style="font-weight:600">${u.name}</span>`;
-                    card.onclick = () => this.select(u);
+                    card.onclick = () => this.selectContact(u);
                     list.appendChild(card);
                 });
             });
         },
 
-        select(u) {
-            this.target = u;
-            const input = document.getElementById('msg-input');
-            const btn = document.getElementById('btn-send');
+        selectGeneral() {
+            this.target = null;
+            this.chatRef = 'global_room';
+            document.getElementById('chat-title').textContent = "Salon Général";
+            document.getElementById('msg-input').placeholder = "Écrire dans Général...";
+            
+            // Gestion visuelle de l'activation
+            document.getElementById('channel-general').classList.add('active');
+            this.syncUsers(); // Enlève l'état actif des contacts
+            this.loadMsgs();
+        },
 
-            // --- C'EST ICI QUE LE DÉBLOCAGE SE FAIT ---
-            input.disabled = false;
-            btn.disabled = false;
-            input.placeholder = "Écrire à " + u.name + "...";
-            document.getElementById('chat-title').textContent = "Conversation avec " + u.name;
+        selectContact(u) {
+            this.target = u;
+            this.chatRef = [this.user.id, u.id].sort().join('_');
+            document.getElementById('chat-title').textContent = "Discussion avec " + u.name;
+            document.getElementById('msg-input').placeholder = "Écrire à " + u.name + "...";
             
-            input.focus(); // Met le curseur directement dans le champ
-            
-            this.syncUsers(); // Refresh sidebar active state
+            document.getElementById('channel-general').classList.remove('active');
+            this.syncUsers(); // Met en surbrillance le contact cliqué
             this.loadMsgs();
         },
 
         loadMsgs() {
             const viewport = document.getElementById('msg-viewport');
             viewport.innerHTML = '';
-            const id = [this.user.id, this.target.id].sort().join('_');
             
-            if (this.chatRef) db.ref('chats/' + this.chatRef).off();
-            this.chatRef = id;
+            // On désabonne l'ancien écouteur s'il existe
+            db.ref('chats/' + this.chatRef).off();
 
-            db.ref('chats/' + id).on('child_added', snap => {
+            db.ref('chats/' + this.chatRef).on('child_added', snap => {
                 const m = snap.val();
                 const isMe = m.senderId === this.user.id;
+                
                 const div = document.createElement('div');
                 div.className = `bubble ${isMe ? 'sent' : 'received'}`;
-                div.textContent = m.text;
+                
+                // Si on est dans le général et que ce n'est pas moi, on affiche le nom de l'auteur
+                let authorHtml = "";
+                if (!this.target && !isMe) {
+                    authorHtml = `<span class="msg-author">${m.senderName || 'Anonyme'}</span>`;
+                }
+
+                div.innerHTML = `${authorHtml}${m.text}`;
                 viewport.appendChild(div);
                 viewport.scrollTop = viewport.scrollHeight;
             });
@@ -200,15 +232,21 @@
         send() {
             const input = document.getElementById('msg-input');
             const text = input.value.trim();
-            if (!text || !this.chatRef) return;
+            if (!text) return;
 
             db.ref('chats/' + this.chatRef).push({
                 text: text,
                 senderId: this.user.id,
+                senderName: this.user.name, // Sauvegardé pour le salon général
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
             input.value = '';
             input.focus();
+        },
+
+        logout() {
+            localStorage.removeItem('nexus_session');
+            location.reload(); // Rafraîchit la page pour revenir au login
         }
     };
 
