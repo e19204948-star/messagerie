@@ -23,6 +23,8 @@
             --shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
             --shadow-md: 0 6px 18px rgba(0,0,0,0.08);
             --transition: all 0.2s ease-in-out;
+            --online: #1fa33a;
+            --offline: #8696a0;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -87,11 +89,19 @@
         .contact-item:hover { background: #f5f6f6; }
         .contact-item.active { background: #eff2f5; }
         
+        /* Avatar & Status */
+        .avatar-container { position: relative; margin-right: 12px; }
         .avatar { 
-            width: 45px; height: 45px; border-radius: 50%; margin-right: 12px; 
+            width: 45px; height: 45px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
+        .status-dot {
+            position: absolute; bottom: 2px; right: 2px;
+            width: 12px; height: 12px; border-radius: 50%;
+            border: 2px solid white; background: var(--offline);
+        }
+        .status-dot.online { background: var(--online); }
 
         /* Chat Area */
         .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; }
@@ -146,7 +156,6 @@
         .input-area button:hover:not(:disabled) { background: var(--primary-dark); transform: scale(1.05); }
         .input-area button:disabled { background: #ced4da; cursor: default; }
 
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     </style>
@@ -188,7 +197,6 @@
 </div>
 
 <script>
-    // --- TA CONFIGURATION FIREBASE ---
     const firebaseConfig = {
         apiKey: "846140280738", 
         authDomain: "messagerie-cd2ba.firebaseapp.com",
@@ -222,6 +230,21 @@
         }
     }
 
+    // --- SYSTÈME DE PRÉSENCE ---
+    function trackPresence(userId) {
+        const userStatusRef = db.ref(`users/${userId}/status`);
+        const connectedRef = db.ref('.info/connected');
+
+        connectedRef.on('value', (snap) => {
+            if (snap.val() === true) {
+                // Si on perd la connexion, mettre 'offline' automatiquement
+                userStatusRef.onDisconnect().set('offline');
+                // Actuellement 'online'
+                userStatusRef.set('online');
+            }
+        });
+    }
+
     document.getElementById('login-btn').onclick = () => {
         const name = document.getElementById('username-input').value.trim();
         if (!name) return;
@@ -237,7 +260,8 @@
                 currentUser = {
                     id: newUserRef.key,
                     name: name,
-                    color: ['#128c7e', '#3498db', '#9b59b6', '#e67e22', '#e74c3c'][Math.floor(Math.random() * 5)]
+                    color: ['#128c7e', '#3498db', '#9b59b6', '#e67e22', '#e74c3c'][Math.floor(Math.random() * 5)],
+                    status: 'online'
                 };
                 newUserRef.set(currentUser).then(loginSuccess);
             }
@@ -249,12 +273,17 @@
         showApp();
     }
 
-    function logout() { localStorage.removeItem('mon_app_utilisateur'); location.reload(); }
+    function logout() { 
+        if(currentUser) db.ref(`users/${currentUser.id}/status`).set('offline');
+        localStorage.removeItem('mon_app_utilisateur'); 
+        location.reload(); 
+    }
 
     function showApp() {
         loginScreen.style.display = 'none';
         appContainer.style.display = 'flex';
         document.getElementById('my-profile-name').textContent = currentUser.name;
+        trackPresence(currentUser.id);
         loadContacts();
     }
 
@@ -266,10 +295,20 @@
             for (let id in users) {
                 const contact = users[id];
                 if (contact.id === currentUser.id) continue;
+                
+                const isOnline = contact.status === 'online';
+
                 const div = document.createElement('div');
                 div.className = `contact-item ${currentContactId === contact.id ? 'active' : ''}`;
-                div.innerHTML = `<div class="avatar" style="background:${contact.color}">${contact.name[0]}</div>
-                                 <div style="flex:1"><p style="font-weight:500; font-size:15px;">${contact.name}</p></div>`;
+                div.innerHTML = `
+                    <div class="avatar-container">
+                        <div class="avatar" style="background:${contact.color}">${contact.name[0]}</div>
+                        <div class="status-dot ${isOnline ? 'online' : ''}"></div>
+                    </div>
+                    <div style="flex:1">
+                        <p style="font-weight:500; font-size:15px;">${contact.name}</p>
+                        <p style="font-size:12px; color:var(--text-secondary)">${isOnline ? 'En ligne' : 'Hors ligne'}</p>
+                    </div>`;
                 div.onclick = () => openChat(contact, div);
                 contactListEl.appendChild(div);
             }
@@ -278,8 +317,9 @@
 
     function openChat(contact, el) {
         currentContactId = contact.id;
-        chatHeaderEl.innerHTML = `<div class="avatar" style="background:${contact.color}; width:35px; height:35px; font-size:14px; margin-right:12px;">${contact.name[0]}</div> 
-                                  <div>${contact.name}</div>`;
+        chatHeaderEl.innerHTML = `
+            <div class="avatar" style="background:${contact.color}; width:35px; height:35px; font-size:14px; margin-right:12px;">${contact.name[0]}</div> 
+            <div>${contact.name}</div>`;
         document.querySelectorAll('.contact-item').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
         messageInput.disabled = false; sendBtn.disabled = false;
