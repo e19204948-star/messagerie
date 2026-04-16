@@ -1,0 +1,48 @@
+@media (max-width: 768px) {
+    /* On force l'application à prendre toute la hauteur réelle du téléphone */
+    .app-container {
+        height: 100vh;
+        height: -webkit-fill-available; /* Pour éviter les bugs sur Safari iOS */
+    }
+
+    .chat-area {
+        display: none; /* Caché par défaut */
+        flex-direction: column;
+        height: 100%;
+        background: var(--bg-chat);
+    }
+
+    .app-container.chat-active .chat-area {
+        display: flex; /* S'affiche en plein écran quand actif */
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+    }
+
+    /* La zone de messages remplit tout l'espace vide entre le header et l'input */
+    .messages-container {
+        flex: 1; 
+        overflow-y: auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* La barre de message reste collée au bas de l'écran */
+    .input-area {
+        padding: 10px;
+        background: #f0f2f5;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-top: 1px solid #ddd;
+        
+        /* Sécurité pour les barres de navigation des smartphones (iPhone/Android) */
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+
+    .input-area input {
+        height: 40px;
+        font-size: 16px; /* Évite le zoom auto de l'iPhone quand on clique */
+    }
+}
