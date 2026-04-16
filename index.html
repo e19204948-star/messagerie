@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FireChat - Groupes</title>
+    <title>FireChat - Groupes & Suppression</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -25,40 +25,38 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: linear-gradient(180deg, var(--primary) 127px, var(--bg-body) 127px); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
 
-        /* ÉCRAN CONNEXION */
         .login-screen { position: fixed; inset: 0; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
 
-        /* APP STRUCTURE */
         .app-container { display: none; width: 95%; max-width: 1400px; height: 95vh; background: var(--bg-app); border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .sidebar { width: 30%; min-width: 300px; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
         .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; }
         .header { height: 60px; background: var(--bg-header); display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid #ddd; z-index: 10; gap: 10px; }
 
-        /* CONTACTS & GROUPES */
         .contact-list { flex: 1; overflow-y: auto; }
         .contact-item { padding: 12px; border-bottom: 1px solid #f2f2f2; cursor: pointer; display: flex; align-items: center; gap: 12px; }
         .contact-item:hover { background: #f9f9f9; }
         .contact-item.active { background: #ebebeb; }
         .contact-item.is-group .avatar { border-radius: 10px; background: var(--group-color) !important; }
 
-        .avatar-wrapper { position: relative; }
         .avatar { width: 45px; height: 45px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; text-transform: uppercase; }
-        .status-dot { position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; background: var(--offline); }
-        .status-dot.online { background: var(--online); }
-
-        /* MESSAGES */
+        
         .messages-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
-        .msg-bubble { max-width: 75%; padding: 8px 12px; margin-bottom: 5px; border-radius: 10px; font-size: 14px; position: relative; word-wrap: break-word; }
-        .sender-name { font-size: 11px; font-weight: bold; margin-bottom: 2px; display: block; color: var(--primary-dark); }
+        
+        /* BULLES DE MESSAGE ET SUPPRESSION */
+        .msg-bubble { 
+            max-width: 75%; padding: 8px 12px; margin-bottom: 5px; border-radius: 10px; 
+            font-size: 14px; position: relative; word-wrap: break-word; 
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .msg-bubble:active { opacity: 0.7; }
         .msg-sent { background: var(--msg-sent); align-self: flex-end; }
         .msg-received { background: var(--msg-received); align-self: flex-start; }
+        .sender-name { font-size: 11px; font-weight: bold; margin-bottom: 2px; display: block; color: var(--primary-dark); }
 
         .input-area { padding: 10px; background: var(--bg-header); display: flex; gap: 10px; align-items: center; }
-        .input-area input { flex: 1; padding: 12px; border: none; border-radius: 20px; outline: none; height: 40px; font-size: 16px; }
+        .input-area input { flex: 1; padding: 12px; border: none; border-radius: 20px; outline: none; height: 40px; }
         .input-area button { background: var(--primary); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; }
-
-        .btn-add-group { background: var(--primary); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
 
         @media (max-width: 768px) {
             .app-container { width: 100%; height: 100vh; border-radius: 0; }
@@ -66,9 +64,7 @@
             .chat-area { display: none; width: 100%; }
             .app-container.chat-active .sidebar { display: none; }
             .app-container.chat-active .chat-area { display: flex; position: fixed; inset: 0; }
-            .back-btn { display: block; }
         }
-        .back-btn { display: none; cursor: pointer; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -78,8 +74,8 @@
 
 <div class="login-screen" id="login-screen">
     <div class="login-box">
-        <h2 style="margin-bottom:15px">FireChat</h2>
-        <input type="text" id="username-input" placeholder="Ton prénom...">
+        <h2>FireChat</h2>
+        <input type="text" id="username-input" placeholder="Ton prénom..." style="width:100%; padding:10px; margin-top:10px;">
         <button id="login-btn" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; margin-top:10px">Entrer</button>
     </div>
 </div>
@@ -88,17 +84,15 @@
     <div class="sidebar">
         <div class="header">
             <strong id="my-name">...</strong>
-            <button class="btn-add-group" onclick="createNewGroup()">+ Groupe</button>
-            <button onclick="logout()" style="margin-left:auto; border:none; color:red; cursor:pointer; background:none;">Quitter</button>
+            <button onclick="createNewGroup()" style="background:var(--primary); color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-size:11px">+ Groupe</button>
+            <button onclick="logout()" style="margin-left:auto; border:none; color:red; cursor:pointer; background:none; font-size:12px">Quitter</button>
         </div>
         <div class="contact-list" id="contact-list"></div>
     </div>
 
     <div class="chat-area">
         <div class="header">
-            <div class="back-btn" onclick="closeChat()">
-                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            </div>
+            <button onclick="closeChat()" style="background:none; border:none; cursor:pointer;">⬅</button>
             <div id="active-chat-info" style="display:flex; align-items:center; gap:10px">Sélectionne un chat</div>
         </div>
         <div class="messages-container" id="messages-container"></div>
@@ -150,110 +144,93 @@
         document.getElementById('app-container').style.display = 'flex';
         document.getElementById('my-name').textContent = currentUser.name;
         db.ref(`users/${currentUser.id}/status`).set('online');
-        db.ref(`users/${currentUser.id}/status`).onDisconnect().set('offline');
         loadSidebar();
     }
 
-    // --- GROUPES ---
     function createNewGroup() {
         const groupName = prompt("Nom du groupe :");
         if (!groupName) return;
-        const newGroupRef = db.ref('groups').push();
-        newGroupRef.set({
-            id: 'group_' + newGroupRef.key,
-            name: groupName,
-            createdBy: currentUser.name,
-            isGroup: true
-        });
+        const ref = db.ref('groups').push();
+        ref.set({ id: 'group_' + ref.key, name: groupName, isGroup: true });
     }
 
-    // --- SIDEBAR (Contacts + Groupes) ---
     function loadSidebar() {
-        // Écouter les utilisateurs ET les groupes
         db.ref().on('value', (snapshot) => {
             const list = document.getElementById('contact-list');
             list.innerHTML = '';
-            
             const users = snapshot.child('users').val() || {};
             const groups = snapshot.child('groups').val() || {};
 
-            // Afficher les Groupes
-            Object.values(groups).forEach(group => {
-                renderItem(group, true);
-            });
-
-            // Afficher les Utilisateurs
-            Object.values(users).forEach(user => {
-                if (user.id !== currentUser.id) renderItem(user, false);
-            });
+            Object.values(groups).forEach(g => renderSidebarItem(g, true));
+            Object.values(users).forEach(u => { if(u.id !== currentUser.id) renderSidebarItem(u, false) });
         });
     }
 
-    function renderItem(item, isGroup) {
+    function renderSidebarItem(item, isGroup) {
         const list = document.getElementById('contact-list');
         const div = document.createElement('div');
-        div.className = `contact-item ${isGroup ? 'is-group' : ''} ${currentChatId === item.id ? 'active' : ''}`;
-        
-        const statusClass = item.status === 'online' ? 'online' : '';
-        div.innerHTML = `
-            <div class="avatar-wrapper">
-                <div class="avatar" style="background:${item.color || '#53bdeb'}">${item.name[0]}</div>
-                ${!isGroup ? `<div class="status-dot ${statusClass}"></div>` : ''}
-            </div>
-            <div>
-                <div style="font-weight:600">${item.name}</div>
-                <div style="font-size:11px; color:var(--text-secondary)">${isGroup ? 'Groupe' : (item.status || 'hors ligne')}</div>
-            </div>`;
-        
+        div.className = `contact-item ${isGroup?'is-group':''} ${currentChatId===item.id?'active':''}`;
+        div.innerHTML = `<div class="avatar" style="background:${item.color||'#53bdeb'}">${item.name[0]}</div>
+                         <div><strong>${item.name}</strong><br><small>${isGroup?'Groupe':(item.status||'offline')}</small></div>`;
         div.onclick = () => openChat(item);
         list.appendChild(div);
     }
 
-    // --- CHAT LOGIC ---
+    // --- CHAT ET SUPPRESSION ---
     function openChat(target) {
         currentChatId = target.id;
         isGroupChat = !!target.isGroup;
         document.getElementById('app-container').classList.add('chat-active');
-        
-        document.getElementById('active-chat-info').innerHTML = `
-            <div class="avatar" style="background:${target.color || '#53bdeb'}; width:35px; height:35px; border-radius:${isGroupChat?'8px':'50%'}">${target.name[0]}</div>
-            <strong>${target.name}</strong>`;
-        
+        document.getElementById('active-chat-info').innerHTML = `<strong>${target.name}</strong>`;
         document.getElementById('message-input').disabled = false;
         document.getElementById('send-btn').disabled = false;
-        document.getElementById('messages-container').innerHTML = '';
+        
+        const container = document.getElementById('messages-container');
+        container.innerHTML = '';
 
         if (activeChatRef) activeChatRef.off();
-
-        // Définir le chemin de la base de données
         const path = isGroupChat ? `group_messages/${target.id}` : `chats/${[currentUser.id, target.id].sort().join('_')}`;
         activeChatRef = db.ref(path);
 
-        activeChatRef.on('child_added', (snap) => {
-            const msg = snap.val();
-            displayMessage(msg);
+        // On écoute "value" au lieu de "child_added" pour gérer les suppressions en temps réel facilement
+        activeChatRef.on('value', (snap) => {
+            container.innerHTML = '';
+            snap.forEach((child) => {
+                const msg = child.val();
+                const msgId = child.key;
+                displayMessage(msg, msgId);
+            });
+            container.scrollTop = container.scrollHeight;
         });
     }
 
-    function displayMessage(msg) {
+    function displayMessage(msg, msgId) {
         const container = document.getElementById('messages-container');
         const isMe = msg.senderId === currentUser.id;
+        
         const div = document.createElement('div');
         div.className = `msg-bubble ${isMe ? 'msg-sent' : 'msg-received'}`;
         
-        // Afficher le nom de l'expéditeur si c'est un groupe et pas moi
-        const senderHtml = (isGroupChat && !isMe) ? `<span class="sender-name">${msg.senderName}</span>` : '';
-        
-        div.innerHTML = `${senderHtml}${msg.text}`;
+        const sender = (isGroupChat && !isMe) ? `<span class="sender-name">${msg.senderName}</span>` : '';
+        div.innerHTML = `${sender}${msg.text}`;
+
+        // Système de suppression si c'est mon message
+        if (isMe) {
+            div.title = "Cliquer pour supprimer";
+            div.onclick = () => {
+                if (confirm("Supprimer ce message pour tout le monde ?")) {
+                    activeChatRef.child(msgId).remove();
+                }
+            };
+        }
+
         container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
     }
 
     function sendMessage() {
         const input = document.getElementById('message-input');
         const text = input.value.trim();
-        if (!text || !currentChatId) return;
-
+        if (!text) return;
         activeChatRef.push({
             text: text,
             senderId: currentUser.id,
@@ -265,7 +242,6 @@
 
     document.getElementById('send-btn').onclick = sendMessage;
     document.getElementById('message-input').onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
-
     function closeChat() { document.getElementById('app-container').classList.remove('chat-active'); }
     function logout() { localStorage.clear(); location.reload(); }
 
