@@ -3,65 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Clone Firebase</title>
+    <title>WhatsApp Firebase</title>
     <style>
-        /* --- STYLE TYPE WHATSAPP --- */
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #dadbd3; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        /* --- DESIGN WHATSAPP --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #d1d7db; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; }
         
-        #login-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
-        input { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #login-container { background: white; padding: 40px; border-radius: 8px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #login-container input { display: block; width: 250px; padding: 12px; margin: 10px auto; border: 1px solid #ddd; border-radius: 6px; }
+        #login-container button { width: 250px; padding: 12px; background: #00a884; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        #chat-interface { width: 90%; max-width: 1200px; height: 90vh; background: #ededed; display: none; box-shadow: 0 1px 1px 0 rgba(0,0,0,.06),0 2px 5px 0 rgba(0,0,0,.2); }
+        #chat-app { width: 95%; max-width: 1400px; height: 95vh; background: #f0f2f5; display: none; box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
         
-        /* Barre latérale */
-        .sidebar { width: 30%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
-        .sidebar-header { background: #ededed; padding: 15px; font-weight: bold; }
-        #user-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; }
-        .user-item { padding: 15px; border-bottom: 1px solid #f2f2f2; cursor: pointer; display: flex; align-items: center; }
-        .user-item:hover { background: #f5f5f5; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-left: auto; }
-        .online { background: #06d755; }
-        .offline { background: #bbb; }
+        /* Barre Latérale */
+        .sidebar { width: 350px; background: white; border-right: 1px solid #d1d7db; display: flex; flex-direction: column; }
+        .sidebar-header { background: #f0f2f5; padding: 15px; font-weight: bold; font-size: 18px; color: #54656f; }
+        #user-list { flex: 1; overflow-y: auto; }
+        .user-card { padding: 15px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
+        .user-card:hover { background: #f5f6f6; }
+        .user-info { margin-left: 15px; flex: 1; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; }
+        .online { background: #1fa33f; }
+        .offline { background: #8696a0; }
 
-        /* Zone de Chat */
-        .main-chat { flex: 1; display: flex; flex-direction: column; background: #e5ddd5; position: relative; }
-        .chat-header { background: #ededed; padding: 10px 20px; display: flex; align-items: center; font-weight: bold; }
+        /* Fenêtre de Chat */
+        .chat-window { flex: 1; display: flex; flex-direction: column; background: #efeae2 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        .chat-header { background: #f0f2f5; padding: 10px 20px; border-bottom: 1px solid #d1d7db; color: #54656f; font-weight: bold; }
         
-        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        #messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
         
-        /* Bulles de message */
-        .message { max-width: 60%; padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; position: relative; font-size: 14.5px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
-        .received { background: white; align-self: flex-start; border-top-left-radius: 0; }
-        .sent { background: #dcf8c6; align-self: flex-end; border-top-right-radius: 0; }
-        .msg-info { font-size: 10px; color: #888; text-align: right; margin-top: 4px; }
+        /* Bulles WhatsApp */
+        .msg { max-width: 65%; padding: 8px 10px; border-radius: 8px; margin-bottom: 4px; font-size: 14.2px; position: relative; box-shadow: 0 1px 0.5px rgba(0,0,0,0.1); }
+        .sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
+        .received { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
+        .sender-name { font-size: 11px; font-weight: bold; color: #128c7e; margin-bottom: 2px; }
+        .msg-time { font-size: 10px; color: #667781; text-align: right; margin-top: 4px; }
 
-        /* Entrée message */
-        .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; }
-        #message-input { flex: 1; border: none; padding: 10px; border-radius: 20px; margin: 0 10px; outline: none; }
+        /* Barre de saisie */
+        .input-bar { background: #f0f2f5; padding: 10px 15px; display: flex; align-items: center; }
+        #msg-input { flex: 1; border: none; padding: 10px 15px; border-radius: 8px; outline: none; font-size: 15px; }
+        #send-btn { background: none; border: none; margin-left: 10px; cursor: pointer; font-size: 20px; }
     </style>
 </head>
 <body>
 
     <div id="login-container">
-        <h2 style="color: #075e54;">Connexion WhatsApp</h2>
-        <input type="text" id="firstname" placeholder="Prénom">
-        <input type="text" id="lastname" placeholder="Nom">
-        <br><br>
-        <button onclick="login()">COMMENCER À DISCUTER</button>
+        <h2 style="color: #00a884; margin-bottom: 20px;">Inscription</h2>
+        <input type="text" id="fname" placeholder="Prénom (ex: Jean)">
+        <input type="text" id="lname" placeholder="Nom">
+        <button onclick="joinChat()">REJOINDRE</button>
     </div>
 
-    <div id="chat-interface">
+    <div id="chat-app">
         <div class="sidebar">
-            <div class="sidebar-header">Contacts</div>
-            <ul id="user-list"></ul>
+            <div class="sidebar-header">Discussions</div>
+            <div id="user-list"></div>
         </div>
-        <div class="main-chat">
-            <div class="chat-header" id="chat-with">Discussion Générale</div>
-            <div id="messages"></div>
-            <div class="input-area">
-                <input type="text" id="message-input" placeholder="Tapez un message">
-                <button onclick="sendMessage()">➤</button>
+        <div class="chat-window">
+            <div class="chat-header">Groupe Général</div>
+            <div id="messages-container"></div>
+            <div class="input-bar">
+                <input type="text" id="msg-input" placeholder="Tapez un message">
+                <button id="send-btn" onclick="sendMsg()">➤</button>
             </div>
         </div>
     </div>
@@ -70,90 +73,102 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <script>
+        // CONFIGURATION
         const firebaseConfig = {
             databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app/",
             projectId: "messagerie-cd2ba"
         };
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const db = firebase.database();
 
-        let currentUser = null;
+        let user = null;
 
-        function login() {
-            const first = document.getElementById('firstname').value.trim();
-            const last = document.getElementById('lastname').value.trim();
-            if (!first || !last) return alert("Remplissez les champs");
+        function joinChat() {
+            const first = document.getElementById('fname').value.trim();
+            const last = document.getElementById('lname').value.trim();
+            
+            if (first && last) {
+                user = {
+                    id: "u_" + Date.now(),
+                    name: first + " " + last
+                };
 
-            currentUser = { id: "user_" + Date.now(), name: first + " " + last };
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('chat-interface').style.display = 'flex';
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('chat-app').style.display = 'flex';
 
-            setupPresence();
-            listenUsers();
-            listenMessages();
+                initPresence();
+                loadUsers();
+                loadMessages();
+            }
         }
 
-        function setupPresence() {
-            const myStatusRef = database.ref('users/' + currentUser.id);
-            database.ref('.info/connected').on('value', (snap) => {
+        // Gestion du statut Online/Offline
+        function initPresence() {
+            const statusRef = db.ref('users/' + user.id);
+            db.ref('.info/connected').on('value', (snap) => {
                 if (snap.val() === true) {
-                    myStatusRef.onDisconnect().set({ name: currentUser.name, status: 'offline' });
-                    myStatusRef.set({ name: currentUser.name, status: 'online' });
+                    statusRef.onDisconnect().set({ name: user.name, status: 'offline' });
+                    statusRef.set({ name: user.name, status: 'online' });
                 }
             });
         }
 
-        function listenUsers() {
-            database.ref('users').on('value', (snapshot) => {
+        // Afficher les contacts
+        function loadUsers() {
+            db.ref('users').on('value', (snapshot) => {
                 const list = document.getElementById('user-list');
                 list.innerHTML = '';
-                snapshot.forEach((child) => {
-                    const user = child.val();
-                    if (child.key !== currentUser.id) {
-                        const li = document.createElement('li');
-                        li.className = 'user-item';
-                        li.innerHTML = `<b>${user.name}</b> <span class="status-dot ${user.status}"></span>`;
-                        list.appendChild(li);
-                    }
+                snapshot.forEach((snap) => {
+                    const u = snap.val();
+                    const item = document.createElement('div');
+                    item.className = 'user-card';
+                    item.innerHTML = `
+                        <div class="status-dot ${u.status}"></div>
+                        <div class="user-info">
+                            <strong>${u.name}</strong><br>
+                            <small style="color:gray">${u.status === 'online' ? 'en ligne' : 'hors ligne'}</small>
+                        </div>
+                    `;
+                    list.appendChild(item);
                 });
             });
         }
 
-        function sendMessage() {
-            const input = document.getElementById('message-input');
-            if (input.value.trim() === "") return;
+        // Envoyer message
+        function sendMsg() {
+            const input = document.getElementById('msg-input');
+            if (!input.value.trim()) return;
 
-            database.ref('messages').push({
-                senderId: currentUser.id,
-                senderName: currentUser.name,
+            db.ref('messages').push({
+                uid: user.id,
+                author: user.name,
                 text: input.value,
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             });
             input.value = '';
         }
 
-        function listenMessages() {
-            database.ref('messages').on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                const container = document.getElementById('messages');
-                const type = msg.senderId === currentUser.id ? 'sent' : 'received';
+        // Charger messages
+        function loadMessages() {
+            const container = document.getElementById('messages-container');
+            db.ref('messages').on('child_added', (snap) => {
+                const m = snap.val();
+                const type = m.uid === user.id ? 'sent' : 'received';
                 
-                const html = `
-                    <div class="message ${type}">
-                        <div style="font-size:11px; font-weight:bold; color:#075e54">${msg.senderName}</div>
-                        ${msg.text}
-                        <div class="msg-info">${msg.time}</div>
-                    </div>
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `msg ${type}`;
+                msgDiv.innerHTML = `
+                    ${type === 'received' ? `<div class="sender-name">${m.author}</div>` : ''}
+                    <div>${m.text}</div>
+                    <div class="msg-time">${m.time}</div>
                 `;
-                container.innerHTML += html;
+                container.appendChild(msgDiv);
                 container.scrollTop = container.scrollHeight;
             });
         }
 
-        // Envoyer avec la touche Entrée
-        document.getElementById('message-input').addEventListener("keyup", function(event) {
-            if (event.key === "Enter") sendMessage();
-        });
+        // Touche Entrée pour envoyer
+        document.getElementById('msg-input').onkeypress = (e) => { if(e.key === "Enter") sendMsg(); };
     </script>
 </body>
 </html>
