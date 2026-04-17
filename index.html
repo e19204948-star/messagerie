@@ -3,65 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Firebase - Projet CD2BA</title>
+    <title>WhatsApp Web - Privé & Groupe</title>
     <style>
-        /* --- DESIGN WHATSAPP --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: #d1d7db; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; }
-        
-        /* Login */
-        #login-container { background: white; padding: 40px; border-radius: 8px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; }
-        input { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
-        button#btn-login { width: 100%; padding: 12px; background: #00a884; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        :root {
+            --wa-bg: #eae6df;
+            --wa-header: #f0f2f5;
+            --wa-green: #00a884;
+            --wa-bubble-sent: #d9fdd3;
+            --wa-bubble-received: #ffffff;
+            --wa-text-gray: #667781;
+            --wa-active-chat: #ebebeb;
+        }
 
-        /* Interface Chat */
-        #chat-app { width: 95%; max-width: 1200px; height: 90vh; background: #f0f2f5; display: none; box-shadow: 0 6px 18px rgba(0,0,0,0.2); border-radius: 3px; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #d1d7db; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+        /* Login */
+        #login-container { background: white; padding: 40px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 400px; text-align: center; border-top: 10px solid var(--wa-green); }
+        #login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        #login-container button { width: 100%; padding: 12px; background: var(--wa-green); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
         
-        .sidebar { width: 30%; background: white; border-right: 1px solid #d1d7db; display: flex; flex-direction: column; }
-        .sidebar-header { background: #f0f2f5; padding: 15px; font-weight: bold; color: #54656f; border-bottom: 1px solid #ddd; }
+        /* Layout */
+        #chat-app { width: 100%; max-width: 1600px; height: 100vh; display: none; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         
+        /* Sidebar */
+        .sidebar { width: 30%; min-width: 300px; background: white; border-right: 1px solid #d1d7db; display: flex; flex-direction: column; }
+        .sidebar-header { background: var(--wa-header); padding: 10px 16px; height: 60px; display: flex; align-items: center; border-bottom: 1px solid #ddd; }
+        .avatar-circle { width: 40px; height: 40px; background: #dfe5e7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #54656f; flex-shrink: 0; }
+        
+        #fixed-chats { border-bottom: 1px solid #ddd; }
         #user-list { flex: 1; overflow-y: auto; }
-        .user-card { padding: 15px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
+        
+        .chat-item { padding: 12px 16px; display: flex; align-items: center; cursor: pointer; border-bottom: 1px solid #f0f2f5; transition: 0.2s; }
+        .chat-item:hover { background: #f5f6f6; }
+        .chat-item.active { background: var(--wa-active-chat); }
+        
+        .user-info { margin-left: 15px; flex: 1; overflow: hidden; }
+        .user-info strong { font-size: 16px; color: #111b21; display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .status-text { font-size: 13px; color: var(--wa-text-gray); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-left: 10px; flex-shrink: 0; }
         .online { background: #1fa33f; }
         .offline { background: #8696a0; }
 
-        .chat-window { flex: 1; display: flex; flex-direction: column; background: #efeae2 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        .chat-header { background: #f0f2f5; padding: 15px; font-weight: bold; color: #54656f; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        /* Main Chat */
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: var(--wa-bg) url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; }
+        .chat-header { background: var(--wa-header); padding: 10px 16px; height: 60px; display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); z-index: 10; }
         
-        #messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        #messages-container { flex: 1; overflow-y: auto; padding: 20px 7%; display: flex; flex-direction: column; }
         
-        /* Bulles */
-        .msg { max-width: 65%; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 14px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); line-height: 1.4; }
-        .sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
-        .received { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
-        .meta { font-size: 10px; color: #667781; text-align: right; margin-top: 4px; }
-        .author { font-size: 11px; font-weight: bold; color: #128c7e; display: block; margin-bottom: 2px; }
+        /* Messages */
+        .msg { max-width: 65%; padding: 6px 10px 8px 12px; border-radius: 8px; margin-bottom: 4px; font-size: 14.5px; position: relative; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); display: inline-block; clear: both; word-wrap: break-word;}
+        .sent { background: var(--wa-bubble-sent); align-self: flex-end; border-top-right-radius: 0; margin-left: auto; }
+        .received { background: var(--wa-bubble-received); align-self: flex-start; border-top-left-radius: 0; }
+        .author { font-size: 12px; font-weight: bold; color: #128c7e; margin-bottom: 2px; display: block; }
+        .msg-footer { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 2px; }
+        .msg-time { font-size: 11px; color: var(--wa-text-gray); }
 
-        .input-bar { background: #f0f2f5; padding: 10px 15px; display: flex; align-items: center; }
-        #msg-input { flex: 1; border: none; padding: 12px; border-radius: 8px; outline: none; }
-        #send-btn { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; margin-left: 10px; cursor: pointer; }
+        /* Input Bar */
+        .input-bar { background: var(--wa-header); padding: 5px 10px; display: flex; align-items: center; gap: 10px; }
+        #msg-input { flex: 1; border: none; padding: 12px 15px; border-radius: 8px; outline: none; font-size: 15px; }
+        #send-btn { background: none; border: none; cursor: pointer; font-size: 24px; color: #54656f; padding-right: 10px; }
     </style>
 </head>
 <body>
 
     <div id="login-container">
-        <h2 style="color: #00a884; margin-bottom: 20px;">WhatsApp Clone</h2>
-        <input type="text" id="fname" placeholder="Prénom">
-        <input type="text" id="lname" placeholder="Nom">
-        <button id="btn-login" onclick="joinChat()">REJOINDRE</button>
+        <h2 style="color: var(--wa-green); margin-bottom: 25px;">WhatsApp</h2>
+        <input type="text" id="fname" placeholder="Ton Prénom">
+        <input type="text" id="lname" placeholder="Ton Nom">
+        <button onclick="joinApp()">SE CONNECTER</button>
     </div>
 
     <div id="chat-app">
         <div class="sidebar">
-            <div class="sidebar-header">Contacts</div>
+            <div class="sidebar-header">
+                <div class="avatar-circle" id="my-avatar">?</div>
+                <span style="font-weight: 500; margin-left: 15px;" id="my-name-display">Moi</span>
+            </div>
+            
+            <div id="fixed-chats">
+                <div class="chat-item active" id="chat-btn-groupe_general" onclick="openChat('groupe_general', 'Groupe Général CD2BA')">
+                    <div class="avatar-circle" style="background:#00a884; color:white;">G</div>
+                    <div class="user-info">
+                        <strong>Groupe Général CD2BA</strong>
+                        <span class="status-text">Espace commun</span>
+                    </div>
+                </div>
+            </div>
+
             <div id="user-list"></div>
         </div>
-        <div class="chat-window">
-            <div class="chat-header">Groupe de Discussion</div>
+        
+        <div class="chat-main">
+            <div class="chat-header">
+                <div class="avatar-circle" id="header-avatar">G</div>
+                <div style="margin-left: 15px;">
+                    <div style="font-weight: 500;" id="header-name">Groupe Général CD2BA</div>
+                </div>
+            </div>
+
             <div id="messages-container"></div>
+
             <div class="input-bar">
-                <input type="text" id="msg-input" placeholder="Écrire un message...">
+                <input type="text" id="msg-input" placeholder="Taper un message">
                 <button id="send-btn" onclick="sendMsg()">➤</button>
             </div>
         </div>
@@ -71,7 +115,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <script>
-        // CONFIGURATION AVEC TES INFOS
+        // CONFIGURATION FIREBASE
         const firebaseConfig = {
             databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app/",
             projectId: "messagerie-cd2ba",
@@ -80,90 +124,154 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let currentUser = null;
+        
+        let user = null;
+        let currentChatId = 'groupe_general'; // Par défaut, on ouvre le groupe
+        let currentMessagesListener = null; // Pour stocker l'écouteur actif
 
-        function joinChat() {
+        // 1. CONNEXION
+        function joinApp() {
             const f = document.getElementById('fname').value.trim();
             const l = document.getElementById('lname').value.trim();
+            if (!f || !l) return;
+
+            // On crée un ID basé sur le nom pour éviter les doublons à chaque rafraichissement
+            const safeId = (f + "_" + l).toLowerCase().replace(/[^a-z0-9]/g, '');
+            user = { id: safeId, name: f + " " + l };
             
-            if (f && l) {
-                currentUser = {
-                    id: "id_" + Math.floor(Math.random() * 1000000),
-                    fullName: f + " " + l
-                };
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('chat-app').style.display = 'flex';
+            
+            document.getElementById('my-avatar').innerText = f[0].toUpperCase();
+            document.getElementById('my-name-display').innerText = user.name;
 
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('chat-app').style.display = 'flex';
-
-                setupPresence();
-                loadContacts();
-                loadMessages();
-            }
+            initPresence();
+            loadContacts();
+            openChat('groupe_general', 'Groupe Général CD2BA'); // Ouvre le groupe au démarrage
         }
 
-        // Système Online/Offline
-        function setupPresence() {
-            const myRef = db.ref('users/' + currentUser.id);
-            db.ref('.info/connected').on('value', (snap) => {
-                if (snap.val() === true) {
-                    // Définit Hors Ligne à la fermeture
-                    myRef.onDisconnect().set({ name: currentUser.fullName, status: 'offline' });
-                    // Définit En Ligne maintenant
-                    myRef.set({ name: currentUser.fullName, status: 'online' });
+        // 2. PRÉSENCE (En ligne / Hors ligne)
+        function initPresence() {
+            const statusRef = db.ref('users/' + user.id);
+            db.ref('.info/connected').on('value', (s) => {
+                if (s.val()) {
+                    statusRef.onDisconnect().set({ id: user.id, name: user.name, status: 'offline' });
+                    statusRef.set({ id: user.id, name: user.name, status: 'online' });
                 }
             });
         }
 
-        // Liste des contacts
+        // 3. CHARGER LES CONTACTS
         function loadContacts() {
             db.ref('users').on('value', (snap) => {
                 const list = document.getElementById('user-list');
                 list.innerHTML = '';
+                
                 snap.forEach((child) => {
                     const u = child.val();
+                    if (u.id === user.id) return; // On ne s'affiche pas soi-même dans la liste
+
+                    // Générer l'ID de la conversation privée
+                    const privateChatId = getPrivateChatId(user.id, u.id);
+                    const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
                     const div = document.createElement('div');
-                    div.className = 'user-card';
+                    div.className = 'chat-item';
+                    div.id = 'chat-btn-' + privateChatId;
+                    // Au clic, on ouvre le salon privé
+                    div.onclick = () => openChat(privateChatId, u.name, initials);
+                    
                     div.innerHTML = `
-                        <div class="status-dot ${u.status}"></div>
-                        <div>
-                            <div style="font-weight:bold">${u.name}</div>
-                            <div style="font-size:11px; color:gray">${u.status}</div>
+                        <div class="avatar-circle">${initials}</div>
+                        <div class="user-info">
+                            <strong>${u.name}</strong>
+                            <span class="status-text">${u.status === 'online' ? 'En ligne' : 'Hors ligne'}</span>
                         </div>
+                        <div class="status-dot ${u.status}"></div>
                     `;
                     list.appendChild(div);
                 });
+
+                // Rafraichir la couleur du bouton actif si des contacts sont ajoutés
+                highlightActiveChat();
             });
         }
 
-        // Messages
+        // 4. GÉNÉRER L'ID UNIQUE POUR 2 PERSONNES
+        // ex: "albert" et "bernard" donneront toujours "albert_bernard" peu importe qui clique
+        function getPrivateChatId(uid1, uid2) {
+            return uid1 < uid2 ? uid1 + "_" + uid2 : uid2 + "_" + uid1;
+        }
+
+        // 5. CHANGER DE SALON (GROUPE OU PRIVÉ)
+        function openChat(chatId, chatName, avatarStr = 'G') {
+            currentChatId = chatId;
+            
+            // Mise à jour de l'en-tête (Header)
+            document.getElementById('header-name').innerText = chatName;
+            document.getElementById('header-avatar').innerText = avatarStr;
+            document.getElementById('header-avatar').style.background = chatId === 'groupe_general' ? '#00a884' : '#dfe5e7';
+            document.getElementById('header-avatar').style.color = chatId === 'groupe_general' ? 'white' : '#54656f';
+
+            highlightActiveChat();
+            loadMessages();
+        }
+
+        // Met en gris clair le contact/groupe sélectionné dans la liste
+        function highlightActiveChat() {
+            document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+            const activeBtn = document.getElementById('chat-btn-' + currentChatId);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        // 6. ENVOYER UN MESSAGE
         function sendMsg() {
             const input = document.getElementById('msg-input');
             if (!input.value.trim()) return;
 
-            db.ref('messages').push({
-                uid: currentUser.id,
-                name: currentUser.fullName,
+            // On envoie le message dans le dossier correspondant au salon actuel
+            db.ref('messages/' + currentChatId).push({
+                uid: user.id,
+                author: user.name,
                 text: input.value,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             });
             input.value = '';
         }
 
+        // 7. CHARGER LES MESSAGES DU SALON ACTUEL
         function loadMessages() {
-            const container = document.getElementById('messages-container');
-            db.ref('messages').on('child_added', (snap) => {
+            const box = document.getElementById('messages-container');
+            box.innerHTML = ''; // On vide l'écran
+            
+            // Si on écoutait déjà un autre salon, on arrête de l'écouter
+            if (currentMessagesListener) {
+                db.ref('messages').off('child_added', currentMessagesListener);
+            }
+
+            // On écoute le nouveau salon
+            const messagesRef = db.ref('messages/' + currentChatId);
+            
+            currentMessagesListener = messagesRef.on('child_added', (snap) => {
                 const m = snap.val();
-                const isMe = m.uid === currentUser.id;
+                const isMe = m.uid === user.id;
                 
                 const div = document.createElement('div');
                 div.className = `msg ${isMe ? 'sent' : 'received'}`;
+                
+                // Si on est dans le groupe et que ce n'est pas moi, on affiche le nom de l'auteur
+                const showAuthor = !isMe && currentChatId === 'groupe_general';
+
                 div.innerHTML = `
-                    ${!isMe ? `<span class="author">${m.name}</span>` : ''}
-                    <div>${m.text}</div>
-                    <div class="meta">${m.timestamp}</div>
+                    ${showAuthor ? `<span class="author">${m.author}</span>` : ''}
+                    ${m.text}
+                    <div class="msg-footer">
+                        <span class="msg-time">${m.time}</span>
+                        ${isMe ? '<span style="color:#53bdeb; font-size:14px;">✓✓</span>' : ''}
+                    </div>
                 `;
-                container.appendChild(div);
-                container.scrollTop = container.scrollHeight;
+                box.appendChild(div);
+                box.scrollTop = box.scrollHeight; // Descend tout en bas
             });
         }
 
