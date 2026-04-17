@@ -1,304 +1,184 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aether Chat | All-in-One</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <title>Messagerie Privée Pro</title>
     <style>
-        :root {
-            --bg: #050505;
-            --glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
-            --accent: #00f2ff;
-            --text: #ffffff;
-            --msg-in: rgba(255, 255, 255, 0.1);
-            --sidebar-bg: rgba(10, 10, 10, 0.8);
-        }
+        :root { --primary: #075e54; --light: #e5ddd5; --msg-in: #ffffff; --msg-out: #dcf8c6; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); height: 100vh; display: flex; align-items: center; justify-content: center; }
+        
+        /* Auth Screen */
+        #auth-screen { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 350px; text-align: center; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
 
-        [data-theme="light"] {
-            --bg: #f0f2f5;
-            --glass: rgba(0, 0, 0, 0.05);
-            --border: rgba(0, 0, 0, 0.1);
-            --accent: #7000ff;
-            --text: #1a1a1a;
-            --msg-in: #e4e6eb;
-            --sidebar-bg: #ffffff;
-        }
+        /* Main App */
+        #app-screen { display: none; width: 95%; height: 90vh; background: white; box-shadow: 0 2px 20px rgba(0,0,0,0.1); display: flex; overflow: hidden; }
+        
+        /* Sidebar */
+        #sidebar { width: 30%; border-right: 1px solid #ddd; display: flex; flex-direction: column; background: #f0f0f0; }
+        .header { padding: 15px; background: var(--primary); color: white; }
+        #contact-list { flex-grow: 1; overflow-y: auto; }
+        .contact-item { padding: 15px; border-bottom: 1px solid #ddd; cursor: pointer; transition: 0.2s; }
+        .contact-item:hover { background: #e9e9e9; }
+        .contact-item.active { background: #fff; border-left: 5px solid var(--primary); }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            transition: background 0.5s ease;
-        }
-
-        /* --- ÉCRAN D'AUTHENTIFICATION --- */
-        .glass-container {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 3rem;
-            border-radius: 24px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        .glow-text {
-            font-size: 2.5rem;
-            text-shadow: 0 0 15px var(--accent);
-            letter-spacing: 8px;
-            margin-bottom: 30px;
-            font-weight: 800;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            color: var(--text);
-            border-radius: 12px;
-            outline: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent);
-            border: none;
-            color: white;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            margin-top: 15px;
-            text-transform: uppercase;
-        }
-
-        /* --- APP PRINCIPALE --- */
-        .main-app {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-        }
-
-        .sidebar {
-            width: 320px;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg);
-        }
-
-        .messages {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .msg {
-            padding: 12px 18px;
-            border-radius: 18px;
-            max-width: 75%;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            position: relative;
-        }
-
-        .received { background: var(--msg-in); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .sent { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(0, 242, 255, 0.3); }
-
-        .input-bar {
-            padding: 20px;
-            background: var(--sidebar-bg);
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid var(--border);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 25px;
-            right: 25px;
-            cursor: pointer;
-            font-size: 1.4rem;
-            z-index: 1000;
-            background: var(--glass);
-            padding: 10px;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Responsive Mobile */
-        @media (max-width: 768px) {
-            .sidebar { width: 70px; padding: 10px; }
-            .sidebar span, .sidebar h2, .user-profile span { display: none; }
-            .main-app { flex-direction: column; }
-            .sidebar { width: 100%; height: 60px; flex-direction: row; justify-content: space-between; }
-        }
+        /* Chat Area */
+        #chat-area { flex-grow: 1; display: flex; flex-direction: column; background: #efe7dd; }
+        #messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+        .bubble { padding: 8px 12px; border-radius: 8px; margin: 5px 0; max-width: 70%; position: relative; }
+        .sent { background: var(--msg-out); align-self: flex-end; }
+        .received { background: var(--msg-in); align-self: flex-start; }
+        
+        #input-zone { padding: 15px; background: #f0f0f0; display: flex; gap: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="theme-toggle" id="theme-btn">
-        <i class="fas fa-moon"></i>
+    <div id="auth-screen">
+        <h2 id="auth-title">Connexion</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Mot de passe">
+        <button onclick="handleAuth()">Continuer</button>
+        <p style="font-size: 12px; color: #666; cursor: pointer;" onclick="toggleAuthMode()">Pas de compte ? S'inscrire</p>
     </div>
 
-    <div id="auth-screen" class="glass-container">
-        <h1 class="glow-text">AETHER</h1>
-        <div id="login-form">
-            <h2 id="auth-title" style="margin-bottom: 15px;">Connexion</h2>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Mot de passe">
-            <button id="auth-btn">Accéder au réseau</button>
-            <p id="toggle-auth" style="cursor:pointer; margin-top:20px; font-size: 0.9rem; opacity: 0.7;">Pas de compte ? Créer un profil</p>
+    <div id="app-screen" style="display: none;">
+        <div id="sidebar">
+            <div class="header">
+                <span id="my-name">Chargement...</span>
+                <button onclick="logout()" style="width: auto; padding: 5px; font-size: 10px; margin-top: 5px;">Déconnexion</button>
+            </div>
+            <div style="padding: 10px;">
+                <input type="text" id="new-contact-email" placeholder="Ajouter un email..." style="width: 70%; font-size: 12px;">
+                <button onclick="addContact()" style="width: 25%; font-size: 12px; padding: 8px;">+</button>
+            </div>
+            <div id="contact-list"></div>
         </div>
-    </div>
 
-    <div id="app-screen" class="main-app" style="display: none;">
-        <aside class="sidebar">
-            <h2 style="margin-bottom: 20px;">Contacts</h2>
-            <div id="user-info" style="margin-bottom: 20px; font-weight: bold; color: var(--accent);"></div>
-            <div class="contact-list">
-                <div style="padding: 10px; background: var(--glass); border-radius: 10px;">
-                    <i class="fas fa-circle" style="color: #00ff00; font-size: 0.7rem;"></i> Canal Principal
-                </div>
+        <div id="chat-area">
+            <div id="messages">Sélectionnez un contact pour discuter</div>
+            <div id="input-zone">
+                <input type="text" id="msg-input" placeholder="Écrire un message...">
+                <button onclick="sendMessage()" style="width: 80px;">Envoyer</button>
             </div>
-            <button id="btn-logout" style="background: transparent; border: 1px solid red; color: red; margin-top: auto;">Quitter</button>
-        </aside>
-
-        <main class="chat-area">
-            <div class="messages" id="message-display"></div>
-            <div class="input-bar">
-                <input type="text" id="msg-input" placeholder="Entrez votre message...">
-                <button id="btn-send" style="width: 60px; margin: 0;"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </main>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // CONFIGURATION (Utilise tes IDs fournis)
         const firebaseConfig = {
-            apiKey: "846140280738", // <--- REMPLACER PAR TA CLE API
-            authDomain: "messagerie-cd2ba.firebaseapp.com",
-            databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app/",
-            projectId: "messagerie-cd2ba",
-            storageBucket: "messagerie-cd2ba.appspot.com",
-            messagingSenderId: "846140280738",
-            appId: "messagerie-cd2b"
+            databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app/"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // --- GESTION DES THEMES ---
-        const themeBtn = document.getElementById('theme-btn');
-        themeBtn.onclick = () => {
-            const html = document.documentElement;
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            themeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        let userUID, userEmail, activeChatID = null;
+        let isSignup = false;
+
+        // --- GESTION AUTH ---
+        window.toggleAuthMode = () => {
+            isSignup = !isSignup;
+            document.getElementById('auth-title').innerText = isSignup ? "Inscription" : "Connexion";
         };
 
-        // --- AUTHENTIFICATION ---
-        const authBtn = document.getElementById('auth-btn');
-        const toggleAuth = document.getElementById('toggle-auth');
-        let isLoggingIn = true;
-
-        toggleAuth.onclick = () => {
-            isLoggingIn = !isLoggingIn;
-            document.getElementById('auth-title').innerText = isLoggingIn ? "Connexion" : "Inscription";
-            authBtn.innerText = isLoggingIn ? "Accéder au réseau" : "Créer le profil";
-            toggleAuth.innerText = isLoggingIn ? "Pas de compte ? Créer un profil" : "Déjà membre ? Se connecter";
-        };
-
-        authBtn.onclick = () => {
+        window.handleAuth = () => {
             const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            if(isLoggingIn) {
-                signInWithEmailAndPassword(auth, email, password).catch(e => alert(e.message));
-            } else {
-                createUserWithEmailAndPassword(auth, email, password).catch(e => alert(e.message));
-            }
+            const pass = document.getElementById('password').value;
+            const action = isSignup ? createUserWithEmailAndPassword : signInWithEmailAndPassword;
+            
+            action(auth, email, pass).then((res) => {
+                // Enregistrer l'utilisateur dans la liste globale pour qu'il soit trouvable
+                set(ref(db, 'users/' + res.user.uid), { email: email });
+            }).catch(err => alert(err.message));
         };
 
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
+        window.logout = () => signOut(auth);
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                userUID = user.uid;
+                userEmail = user.email;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-screen').style.display = 'flex';
-                document.getElementById('user-info').innerText = user.email.split('@')[0].toUpperCase();
-                listenMessages();
+                document.getElementById('my-name').innerText = userEmail;
+                loadContacts();
             } else {
                 document.getElementById('auth-screen').style.display = 'block';
                 document.getElementById('app-screen').style.display = 'none';
             }
         });
 
-        // --- MESSAGES ---
-        const sendBtn = document.getElementById('btn-send');
-        const msgInput = document.getElementById('msg-input');
-        const display = document.getElementById('message-display');
+        // --- GESTION CONTACTS ---
+        window.addContact = () => {
+            const emailToAdd = document.getElementById('new-contact-email').value;
+            if(emailToAdd === userEmail) return;
 
-        const sendAction = () => {
-            if (msgInput.value.trim() !== "") {
-                push(ref(db, 'messages'), {
-                    text: msgInput.value,
-                    user: auth.currentUser.email,
-                    time: serverTimestamp()
-                });
-                msgInput.value = "";
-            }
+            // On simplifie ici : on ajoute l'email directement dans une liste de contacts
+            const contactId = btoa(emailToAdd).replace(/=/g, ""); // Créer un ID propre à partir de l'email
+            set(ref(db, `contacts/${userUID}/${contactId}`), { email: emailToAdd });
+            document.getElementById('new-contact-email').value = "";
         };
 
-        sendBtn.onclick = sendAction;
-        msgInput.onkeypress = (e) => { if(e.key === 'Enter') sendAction(); };
-
-        function listenMessages() {
-            display.innerHTML = ""; 
-            onChildAdded(ref(db, 'messages'), (snap) => {
-                const data = snap.val();
-                const isMe = data.user === auth.currentUser.email;
-                const div = document.createElement('div');
-                div.className = `msg ${isMe ? 'sent' : 'received'}`;
-                div.innerHTML = `<small style="font-size:0.7rem; opacity:0.6">${data.user.split('@')[0]}</small><br>${data.text}`;
-                display.appendChild(div);
-                display.scrollTop = display.scrollHeight;
+        function loadContacts() {
+            onValue(ref(db, `contacts/${userUID}`), (snapshot) => {
+                const list = document.getElementById('contact-list');
+                list.innerHTML = "";
+                snapshot.forEach(child => {
+                    const contact = child.val();
+                    const div = document.createElement('div');
+                    div.className = 'contact-item';
+                    div.innerText = contact.email;
+                    div.onclick = () => startChat(contact.email);
+                    list.appendChild(div);
+                });
             });
         }
+
+        // --- GESTION MESSAGES ---
+        function startChat(otherEmail) {
+            // Créer un ID de discussion unique (tri alphabétique pour que A->B et B->A soit le même canal)
+            const id1 = userEmail.replace(/[.@]/g, "");
+            const id2 = otherEmail.replace(/[.@]/g, "");
+            activeChatID = [id1, id2].sort().join("_");
+            
+            document.getElementById('messages').innerHTML = "Chargement...";
+            loadMessages();
+        }
+
+        function loadMessages() {
+            if(!activeChatID) return;
+            onValue(ref(db, 'chats/' + activeChatID), (snapshot) => {
+                const container = document.getElementById('messages');
+                container.innerHTML = "";
+                snapshot.forEach(child => {
+                    const data = child.val();
+                    const div = document.createElement('div');
+                    div.className = `bubble ${data.sender === userEmail ? 'sent' : 'received'}`;
+                    div.innerText = data.text;
+                    container.appendChild(div);
+                });
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        window.sendMessage = () => {
+            const text = document.getElementById('msg-input').value;
+            if(!activeChatID || text.trim() === "") return;
+
+            push(ref(db, 'chats/' + activeChatID), {
+                sender: userEmail,
+                text: text,
+                timestamp: serverTimestamp()
+            });
+            document.getElementById('msg-input').value = "";
+        };
     </script>
 </body>
 </html>
