@@ -217,8 +217,10 @@
   .msg-wrap.out .msg-bubble { background: var(--accent); color:#fff; border-bottom-right-radius:4px; }
   .msg-wrap.in .msg-bubble { background: var(--msg-in); border:1px solid var(--border); border-bottom-left-radius:4px; }
   .msg-sender { font-size:.72rem; font-weight:600; color: var(--accent); margin-bottom:3px; }
-  .msg-time { font-size:.68rem; opacity:.6; margin-top:4px; text-align:right; }
+  .msg-time { font-size:.68rem; opacity:.6; margin-top:4px; text-align:right; display:flex; align-items:center; gap:6px; }
   .msg-wrap.in .msg-time { text-align:left; }
+  .msg-delete-btn { background:none; border:none; color:inherit; cursor:pointer; opacity:.5; transition:opacity .2s; font-size:.8rem; padding:0 4px; }
+  .msg-delete-btn:hover { opacity:1; color:var(--danger); }
 
   .msg-file { display:flex; align-items:center; gap:10px; background: rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px; margin-bottom:4px; cursor:pointer; text-decoration:none; color:inherit; transition: background .2s; }
   .msg-wrap.out .msg-file { background: rgba(255,255,255,0.15); }
@@ -1212,7 +1214,7 @@ function listenMessages(convId) {
     wrap.innerHTML = `<div class="msg-bubble">
       ${!isOut&&isGrp?`<div class="msg-sender">${esc(sender)}</div>`:''}
       ${content}
-      <div class="msg-time">${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="msg-time">${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}${isOut?` <button class="msg-delete-btn" onclick="deleteMessage('${currentConvId}', '${snap.key}')" title="Supprimer">✕</button>`:''}</div>
     </div>`;
     container.appendChild(wrap);
     container.scrollTop = container.scrollHeight;
@@ -1256,6 +1258,20 @@ function renderFilePreview() {
   }).join('');
 }
 window.removeFile = i => { pendingFiles.splice(i,1); renderFilePreview(); };
+
+/* ══ SUPPRESSION ══ */
+window.deleteMessage = async (convId, msgId) => {
+  if(!confirm('Voulez-vous vraiment supprimer ce message ?')) return;
+  try {
+    await remove(ref(db, `messages/${convId}/${msgId}`));
+    showToast('✅ Message supprimé');
+  } catch(e) {
+    console.error('[DELETE] Erreur suppression message:', e);
+    showToast('❌ Erreur lors de la suppression');
+  }
+};
+
+
 
 async function sendFile(file) {
   if(file.size > FILE_SIZE_LIMIT){ showToast(`❌ ${file.name} trop lourd (max 5 Mo)`); return; }
